@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1600px; height: 400px; overflow: hidden; }
+  body {
+    font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+    background: #0B0D13;
+    color: #fff;
+    position: relative;
+  }
+  .grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse 80% 90% at 30% 50%, #000 30%, transparent 100%);
+    -webkit-mask-image: radial-gradient(ellipse 80% 90% at 30% 50%, #000 30%, transparent 100%);
+  }
+  .glow-a { position: absolute; width: 520px; height: 520px; border-radius: 50%; left: -180px; top: -260px;
+    background: radial-gradient(circle, rgba(77,107,254,0.22) 0%, transparent 65%); }
+  .glow-b { position: absolute; width: 480px; height: 480px; border-radius: 50%; right: -160px; bottom: -240px;
+    background: radial-gradient(circle, rgba(45,212,191,0.12) 0%, transparent 65%); }
+  .content { position: relative; z-index: 2; height: 100%; display: flex; align-items: center;
+    padding: 0 90px; justify-content: space-between; }
+
+  .left { flex: none; }
+  .badge {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 14px; font-weight: 600; letter-spacing: 3px; color: #9FB0FF;
+    background: rgba(77,107,254,0.12); border: 1px solid rgba(77,107,254,0.35);
+    padding: 6px 14px; border-radius: 999px; width: fit-content;
+  }
+  .badge .dot { width: 8px; height: 8px; border-radius: 50%; background: #4D6BFE;
+    box-shadow: 0 0 10px #4D6BFE; }
+  h1 {
+    margin-top: 18px;
+    font-size: 62px; font-weight: 800; letter-spacing: -1px;
+    background: linear-gradient(90deg, #FFFFFF 20%, #B9C7FF 100%);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .subtitle { margin-top: 10px; font-size: 20px; color: #A8B0C3; font-weight: 400; }
+  .subtitle b { color: #fff; font-weight: 600; }
+  .foot { margin-top: 20px; font-size: 14px; color: #6E7892; }
+  .foot code { color: #9FB0FF; background: rgba(77,107,254,0.1); padding: 2px 8px; border-radius: 6px;
+    font-family: 'Consolas', monospace; font-size: 13px; }
+
+  .card {
+    flex: none;
+    width: 660px;
+    background: rgba(255,255,255,0.035);
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 18px;
+    padding: 26px 40px 24px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+  .card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
+  .card-title { font-size: 15px; font-weight: 600; color: #E8EBF5; letter-spacing: 1px; }
+  .card-title span { color: #5E6B8A; font-weight: 400; margin-left: 8px; font-size: 13px; }
+  .card-status { font-size: 13px; color: #2DD4BF; display: flex; align-items: center; gap: 7px; }
+  .card-status .pulse { width: 7px; height: 7px; border-radius: 50%; background: #2DD4BF;
+    box-shadow: 0 0 8px #2DD4BF; }
+
+  .track-zone { position: relative; height: 40px; }
+  .track { position: absolute; left: 20px; right: 20px; top: 10px; height: 5px; border-radius: 3px;
+    background: #262C3A; }
+  .track-fill { position: absolute; left: 20px; top: 10px; height: 5px; border-radius: 3px;
+    width: calc(100% - 40px);
+    background: linear-gradient(90deg, #4D6BFE, #2DD4BF);
+    box-shadow: 0 0 12px rgba(77,107,254,0.55); }
+  .dot { position: absolute; top: 7px; width: 12px; height: 12px; border-radius: 50%;
+    transform: translateX(-50%);
+    background: #0B0D13; border: 2px solid #4A5266; }
+  .dot.active { width: 16px; height: 16px; top: 4px;
+    background: #4D6BFE; border: 3px solid #0B0D13;
+    box-shadow: 0 0 0 2px #4D6BFE, 0 0 20px rgba(77,107,254,0.9); }
+  .labels { position: relative; height: 24px; margin-top: 6px; }
+  .lbl { position: absolute; transform: translateX(-50%); font-size: 14px; color: #8A93A6;
+    white-space: nowrap; }
+  .lbl.active { color: #FFFFFF; font-weight: 700; text-shadow: 0 0 12px rgba(77,107,254,0.8); }
+  .lbl.first { transform: none; }
+  .lbl.last { transform: translateX(-100%); }
+</style>
+</head>
+<body>
+  <div class="grid"></div>
+  <div class="glow-a"></div>
+  <div class="glow-b"></div>
+  <div class="content">
+    <div class="left">
+      <div class="badge"><span class="dot"></span>DSH PLUGIN</div>
+      <h1>dsh-autonomy</h1>
+      <div class="subtitle"><b>DSH 自主性切换器</b> · Per-session autonomy control</div>
+      <div class="foot">提示词注入 · 零干预默认档 · <code>/autonomy</code> 命令 · 跨重启记忆</div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">自主性<span>每会话独立 · 即时生效</span></div>
+        <div class="card-status"><span class="pulse"></span>正常发挥</div>
+      </div>
+      <div class="track-zone">
+        <div class="track"></div>
+        <div class="track-fill"></div>
+        <div class="dot" style="left:0%"></div>
+        <div class="dot" style="left:25%"></div>
+        <div class="dot" style="left:50%"></div>
+        <div class="dot" style="left:75%"></div>
+        <div class="dot active" style="left:100%"></div>
+      </div>
+      <div class="labels">
+        <div class="lbl first" style="left:0%">严格遵循</div>
+        <div class="lbl" style="left:25%">听取要求</div>
+        <div class="lbl" style="left:50%">正常发挥</div>
+        <div class="lbl" style="left:75%">展现创造</div>
+        <div class="lbl last active" style="left:100%">天马行空</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

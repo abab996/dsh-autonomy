@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1280px; height: 640px; overflow: hidden; }
+  body {
+    font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+    background: #0B0D13;
+    color: #fff;
+    position: relative;
+  }
+  /* 网格底纹 */
+  .grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse 90% 80% at 50% 40%, #000 30%, transparent 100%);
+    -webkit-mask-image: radial-gradient(ellipse 90% 80% at 50% 40%, #000 30%, transparent 100%);
+  }
+  /* 光晕 */
+  .glow-a { position: absolute; width: 620px; height: 620px; border-radius: 50%; left: -220px; top: -260px;
+    background: radial-gradient(circle, rgba(77,107,254,0.22) 0%, transparent 65%); }
+  .glow-b { position: absolute; width: 560px; height: 560px; border-radius: 50%; right: -200px; bottom: -280px;
+    background: radial-gradient(circle, rgba(45,212,191,0.12) 0%, transparent 65%); }
+  .content { position: relative; z-index: 2; height: 100%; display: flex; flex-direction: column;
+    align-items: center; padding-top: 74px; }
+
+  /* 徽标 */
+  .badge {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 15px; font-weight: 600; letter-spacing: 3px; color: #9FB0FF;
+    background: rgba(77,107,254,0.12); border: 1px solid rgba(77,107,254,0.35);
+    padding: 7px 16px; border-radius: 999px;
+  }
+  .badge .dot { width: 8px; height: 8px; border-radius: 50%; background: #4D6BFE;
+    box-shadow: 0 0 10px #4D6BFE; }
+
+  /* 标题 */
+  h1 {
+    margin-top: 22px;
+    font-size: 74px; font-weight: 800; letter-spacing: -1px;
+    background: linear-gradient(90deg, #FFFFFF 20%, #B9C7FF 100%);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .subtitle { margin-top: 14px; font-size: 23px; color: #A8B0C3; font-weight: 400; }
+  .subtitle b { color: #fff; font-weight: 600; }
+
+  /* 滑块卡片 */
+  .card {
+    margin-top: 44px;
+    width: 820px;
+    background: rgba(255,255,255,0.035);
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 20px;
+    padding: 34px 48px 30px;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.05);
+    backdrop-filter: blur(6px);
+  }
+  .card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 26px; }
+  .card-title { font-size: 17px; font-weight: 600; color: #E8EBF5; letter-spacing: 1px; }
+  .card-title span { color: #5E6B8A; font-weight: 400; margin-left: 10px; font-size: 14px; }
+  .card-status { font-size: 14px; color: #2DD4BF; display: flex; align-items: center; gap: 7px; }
+  .card-status .pulse { width: 7px; height: 7px; border-radius: 50%; background: #2DD4BF;
+    box-shadow: 0 0 8px #2DD4BF; }
+
+  /* 轨道 */
+  .track-zone { position: relative; height: 46px; }
+  .track { position: absolute; left: 24px; right: 24px; top: 11px; height: 5px; border-radius: 3px;
+    background: #262C3A; }
+  .track-fill { position: absolute; left: 24px; top: 11px; height: 5px; border-radius: 3px;
+    width: calc(100% - 48px);
+    background: linear-gradient(90deg, #4D6BFE, #2DD4BF);
+    box-shadow: 0 0 12px rgba(77,107,254,0.55); }
+  .dot { position: absolute; top: 8px; width: 12px; height: 12px; border-radius: 50%;
+    transform: translateX(-50%);
+    background: #0B0D13; border: 2px solid #4A5266; }
+  .dot.active { width: 17px; height: 17px; top: 5px;
+    background: #4D6BFE; border: 3px solid #0B0D13;
+    box-shadow: 0 0 0 2px #4D6BFE, 0 0 22px rgba(77,107,254,0.9); }
+  .labels { position: relative; height: 26px; margin-top: 8px; }
+  .lbl { position: absolute; transform: translateX(-50%); font-size: 16px; color: #8A93A6;
+    white-space: nowrap; }
+  .lbl.active { color: #FFFFFF; font-weight: 700; text-shadow: 0 0 14px rgba(77,107,254,0.8); }
+  .lbl.first { transform: none; }
+  .lbl.last { transform: translateX(-100%); }
+
+  /* 底部 */
+  .foot { margin-top: 34px; font-size: 15px; color: #6E7892; letter-spacing: 0.5px; }
+  .foot code { color: #9FB0FF; background: rgba(77,107,254,0.1); padding: 2px 8px; border-radius: 6px;
+    font-family: 'Consolas', monospace; font-size: 14px; }
+</style>
+</head>
+<body>
+  <div class="grid"></div>
+  <div class="glow-a"></div>
+  <div class="glow-b"></div>
+  <div class="content">
+    <div class="badge"><span class="dot"></span>DSH PLUGIN · 深色主题适配</div>
+    <h1>dsh-autonomy</h1>
+    <div class="subtitle"><b>DSH 自主性切换器</b> · Per-session autonomy control for DeepSeek Harness</div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">自主性<span>每会话独立 · 下一条消息即时生效</span></div>
+        <div class="card-status"><span class="pulse"></span>正常发挥</div>
+      </div>
+      <div class="track-zone">
+        <div class="track"></div>
+        <div class="track-fill"></div>
+        <div class="dot" style="left:0%"></div>
+        <div class="dot" style="left:25%"></div>
+        <div class="dot" style="left:50%"></div>
+        <div class="dot" style="left:75%"></div>
+        <div class="dot active" style="left:100%"></div>
+      </div>
+      <div class="labels">
+        <div class="lbl first" style="left:0%">严格遵循</div>
+        <div class="lbl" style="left:25%">听取要求</div>
+        <div class="lbl" style="left:50%">正常发挥</div>
+        <div class="lbl" style="left:75%">展现创造</div>
+        <div class="lbl active last" style="left:100%">天马行空</div>
+      </div>
+    </div>
+
+    <div class="foot">提示词注入 · 零干预默认档 · <code>/autonomy</code> 命令 · 跨重启记忆</div>
+  </div>
+</body>
+</html>

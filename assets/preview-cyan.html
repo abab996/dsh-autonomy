@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1280px; height: 640px; overflow: hidden; }
+  body {
+    font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+    background: #0A0F12;
+    color: #fff;
+    position: relative;
+  }
+  .grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(45,212,191,0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(45,212,191,0.05) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse 90% 80% at 50% 40%, #000 30%, transparent 100%);
+    -webkit-mask-image: radial-gradient(ellipse 90% 80% at 50% 40%, #000 30%, transparent 100%);
+  }
+  .glow-a { position: absolute; width: 640px; height: 640px; border-radius: 50%; left: -230px; top: -270px;
+    background: radial-gradient(circle, rgba(45,212,191,0.18) 0%, transparent 65%); }
+  .glow-b { position: absolute; width: 560px; height: 560px; border-radius: 50%; right: -200px; bottom: -280px;
+    background: radial-gradient(circle, rgba(139,92,246,0.14) 0%, transparent 65%); }
+  .content { position: relative; z-index: 2; height: 100%; display: flex; flex-direction: column;
+    align-items: center; padding-top: 74px; }
+
+  .badge {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 15px; font-weight: 600; letter-spacing: 3px; color: #7FE8D8;
+    background: rgba(45,212,191,0.1); border: 1px solid rgba(45,212,191,0.35);
+    padding: 7px 16px; border-radius: 999px;
+  }
+  .badge .dot { width: 8px; height: 8px; border-radius: 50%; background: #2DD4BF;
+    box-shadow: 0 0 10px #2DD4BF; }
+
+  h1 {
+    margin-top: 22px;
+    font-size: 74px; font-weight: 800; letter-spacing: -1px;
+    background: linear-gradient(90deg, #FFFFFF 20%, #8FE9DC 100%);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .subtitle { margin-top: 14px; font-size: 23px; color: #A8B0C3; font-weight: 400; }
+  .subtitle b { color: #fff; font-weight: 600; }
+
+  .card {
+    margin-top: 44px;
+    width: 820px;
+    background: rgba(255,255,255,0.035);
+    border: 1px solid rgba(45,212,191,0.18);
+    border-radius: 20px;
+    padding: 34px 48px 30px;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+  .card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 26px; }
+  .card-title { font-size: 17px; font-weight: 600; color: #E8EBF5; letter-spacing: 1px; }
+  .card-title span { color: #5E6B8A; font-weight: 400; margin-left: 10px; font-size: 14px; }
+  .card-status { font-size: 14px; color: #2DD4BF; display: flex; align-items: center; gap: 7px; }
+  .card-status .pulse { width: 7px; height: 7px; border-radius: 50%; background: #2DD4BF;
+    box-shadow: 0 0 8px #2DD4BF; }
+
+  .track-zone { position: relative; height: 46px; }
+  .track { position: absolute; left: 24px; right: 24px; top: 11px; height: 5px; border-radius: 3px;
+    background: #22303A; }
+  .track-fill { position: absolute; left: 24px; top: 11px; height: 5px; border-radius: 3px;
+    width: calc(100% - 48px);
+    background: linear-gradient(90deg, #2DD4BF, #8B5CF6);
+    box-shadow: 0 0 12px rgba(45,212,191,0.5); }
+  .dot { position: absolute; top: 8px; width: 12px; height: 12px; border-radius: 50%;
+    transform: translateX(-50%);
+    background: #0A0F12; border: 2px solid #3D5560; }
+  .dot.active { width: 17px; height: 17px; top: 5px;
+    background: #2DD4BF; border: 3px solid #0A0F12;
+    box-shadow: 0 0 0 2px #2DD4BF, 0 0 22px rgba(45,212,191,0.9); }
+  .labels { position: relative; height: 26px; margin-top: 8px; }
+  .lbl { position: absolute; transform: translateX(-50%); font-size: 16px; color: #8A93A6;
+    white-space: nowrap; }
+  .lbl.active { color: #FFFFFF; font-weight: 700; text-shadow: 0 0 14px rgba(45,212,191,0.8); }
+  .lbl.first { transform: none; }
+  .lbl.last { transform: translateX(-100%); }
+
+  .foot { margin-top: 34px; font-size: 15px; color: #6E7892; letter-spacing: 0.5px; }
+  .foot code { color: #7FE8D8; background: rgba(45,212,191,0.1); padding: 2px 8px; border-radius: 6px;
+    font-family: 'Consolas', monospace; font-size: 14px; }
+</style>
+</head>
+<body>
+  <div class="grid"></div>
+  <div class="glow-a"></div>
+  <div class="glow-b"></div>
+  <div class="content">
+    <div class="badge"><span class="dot"></span>DSH PLUGIN · 每会话独立记忆</div>
+    <h1>dsh-autonomy</h1>
+    <div class="subtitle"><b>DSH 自主性切换器</b> · Per-session autonomy control for DeepSeek Harness</div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">自主性<span>提示词注入 · 下一条消息即时生效</span></div>
+        <div class="card-status"><span class="pulse"></span>正常发挥</div>
+      </div>
+      <div class="track-zone">
+        <div class="track"></div>
+        <div class="track-fill"></div>
+        <div class="dot active" style="left:0%"></div>
+        <div class="dot" style="left:25%"></div>
+        <div class="dot" style="left:50%"></div>
+        <div class="dot" style="left:75%"></div>
+        <div class="dot" style="left:100%"></div>
+      </div>
+      <div class="labels">
+        <div class="lbl first active" style="left:0%">严格遵循</div>
+        <div class="lbl" style="left:25%">听取要求</div>
+        <div class="lbl" style="left:50%">正常发挥</div>
+        <div class="lbl" style="left:75%">展现创造</div>
+        <div class="lbl last" style="left:100%">天马行空</div>
+      </div>
+    </div>
+
+    <div class="foot">零干预默认档 · <code>/autonomy</code> 命令 · 跨重启记忆 · 天马行空档先说明再动手</div>
+  </div>
+</body>
+</html>
