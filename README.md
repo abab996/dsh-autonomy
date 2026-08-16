@@ -47,7 +47,7 @@ DSH 的模型默认自主性极强：拿到一句话请求，它会在**单轮�
 - DeepSeek Harness **rc.6 及以上**（web 部署）；
 - Windows（脚本基于 PowerShell；macOS/Linux 可手动执行等价步骤）。
 
-### 步骤
+### 方式一：手动安装
 
 ```powershell
 # 1. 克隆仓库
@@ -68,6 +68,33 @@ powershell -ExecutionPolicy Bypass -File deploy.ps1
 2. 以本地 `file:` 依赖（junction 软链）装入 `~/.dsh/profiles/web`——之后改代码只需重新构建，无需卸载重装；
 3. 在 profile 的 `cordis.patch.yml` 追加启用行，并把 `autonomy` 加入 `dsh-host-apiproxy` 的
    `WEB_SETTINGS_NAMESPACES` 白名单（DSH 升级后需重跑本脚本）。
+
+### 方式二：让 AI 帮你安装（推荐）
+
+不想敲命令？直接在 DSH 中新建一个会话，把下面这段提示词整段复制发给 AI 即可，
+AI 会自己完成克隆、装依赖、跑部署脚本并验证结果（你只需要在最后重启一次 DSH）：
+
+````text
+请帮我安装这个 DSH 插件仓库：https://github.com/abab996/dsh-autonomy
+
+请按以下步骤操作，每完成一步简要汇报一次：
+1. 克隆仓库到合适的位置（例如当前工作区下的 dsh-autonomy 目录）；
+2. 在仓库目录运行 npm install 安装构建依赖；
+3. 运行 powershell -ExecutionPolicy Bypass -File deploy.ps1 完成部署
+   （该脚本会：构建两个插件包、以软链接装入 ~/.dsh/profiles/web、
+   在 profile 的 cordis.patch.yml 追加启用行、并把 autonomy 加入 DSH 的设置白名单）；
+4. 验证部署结果：cordis.patch.yml 中包含 autonomy 与 autonomy-client 两行、
+   设置白名单包含 "autonomy"、两个插件包的软链接已建立；
+5. 汇报结果，并提醒我：需要我手动重启 DSH（会中断当前会话），
+   重启并刷新页面后，输入框模型切换器左侧会出现自主性滑块。
+
+注意事项：
+- 部署脚本需要能写入 ~/.dsh 和 DSH 安装目录；若因权限失败，原样报告报错信息，
+  不要擅自绕过权限或修改文件；
+- 除运行脚本外不要手动改动任何文件；
+- 若 npm install 因网络失败，可先切换国内镜像重试：
+  npm config set registry https://registry.npmmirror.com
+````
 
 ### 最后一步：重启
 
