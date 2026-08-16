@@ -2,131 +2,293 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
+  /* ═══ 工程图纸 / 技术蓝图 · Design Specifications ═══ */
+  :root {
+    --bg: #0A1424;                 /* 极夜暗蓝 */
+    --bg-card: #112038;            /* 深色卡片 */
+    --primary: #00F0FF;            /* 电光青线框 */
+    --ink: #E0F7FC;                /* 高亮文本与主体框线 */
+    --ink-2: #7E9AB8;              /* 次级标注 */
+    --ink-3: #4A6484;              /* 弱化刻度 */
+    --accent: #FF5E00;             /* 荧橙标注 */
+    --border: rgba(0, 240, 255, 0.25);
+    --border-dashed: rgba(0, 240, 255, 0.35);
+    --grid: rgba(0, 240, 255, 0.07);
+  }
+  body[data-theme="parchment"] {
+    --bg: #F5F3EE;                 /* 暖米白图纸 */
+    --bg-card: #FAF8F3;
+    --primary: #4169E1;            /* 皇家蓝 */
+    --ink: #1E3A5F;
+    --ink-2: #5A7299;
+    --ink-3: #9AA8BE;
+    --accent: #D35400;             /* 工业赤橙 */
+    --border: rgba(30, 58, 95, 0.25);
+    --border-dashed: rgba(30, 58, 95, 0.3);
+    --grid: rgba(65, 105, 225, 0.07);
+  }
+
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { width: 1280px; height: 640px; overflow: hidden; }
+  body[data-layout="banner"] { width: 1600px; height: 400px; }
   body {
-    font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
-    background: #0B0D13;
-    color: #fff;
+    font-family: 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
     position: relative;
   }
-  /* 网格底纹 */
-  .grid {
+  .mono { font-family: 'JetBrains Mono', 'Consolas', monospace; }
+
+  /* ── 蓝图画布：网格 + 四角准星 + 刻度装饰 ─────────────────── */
+  .canvas { position: absolute; inset: 0; overflow: hidden; }
+  .canvas .grid {
     position: absolute; inset: 0;
     background-image:
-      linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
-    background-size: 48px 48px;
-    mask-image: radial-gradient(ellipse 90% 80% at 50% 40%, #000 30%, transparent 100%);
-    -webkit-mask-image: radial-gradient(ellipse 90% 80% at 50% 40%, #000 30%, transparent 100%);
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 40px 40px;
   }
-  /* 光晕 */
-  .glow-a { position: absolute; width: 620px; height: 620px; border-radius: 50%; left: -220px; top: -260px;
-    background: radial-gradient(circle, rgba(77,107,254,0.22) 0%, transparent 65%); }
-  .glow-b { position: absolute; width: 560px; height: 560px; border-radius: 50%; right: -200px; bottom: -280px;
-    background: radial-gradient(circle, rgba(45,212,191,0.12) 0%, transparent 65%); }
-  .content { position: relative; z-index: 2; height: 100%; display: flex; flex-direction: column;
-    align-items: center; padding-top: 74px; }
+  /* 画布四角大准星 */
+  .canvas .sight { position: absolute; width: 46px; height: 46px; border: 2px solid var(--border); }
+  .canvas .sight.tl { top: 26px; left: 26px; border-width: 2px 0 0 2px; }
+  .canvas .sight.tr { top: 26px; right: 26px; border-width: 2px 2px 0 0; }
+  .canvas .sight.bl { bottom: 26px; left: 26px; border-width: 0 0 2px 2px; }
+  .canvas .sight.br { bottom: 26px; right: 26px; border-width: 0 2px 2px 0; }
+  /* 画布左右竖刻度 */
+  .canvas .ruler { position: absolute; top: 26px; bottom: 26px; width: 1px;
+    background: var(--border); }
+  .canvas .ruler.left { left: 76px; }
+  .canvas .ruler.right { right: 76px; }
+  .canvas .ruler::before { content: ''; position: absolute; top: -6px; left: -3px;
+    width: 7px; height: 1px; background: var(--border); }
+  .canvas .ruler::after { content: ''; position: absolute; bottom: -6px; left: -3px;
+    width: 7px; height: 1px; background: var(--border); }
 
-  /* 徽标 */
-  .badge {
-    display: flex; align-items: center; gap: 8px;
-    font-size: 15px; font-weight: 600; letter-spacing: 3px; color: #9FB0FF;
-    background: rgba(77,107,254,0.12); border: 1px solid rgba(77,107,254,0.35);
-    padding: 7px 16px; border-radius: 999px;
-  }
-  .badge .dot { width: 8px; height: 8px; border-radius: 50%; background: #4D6BFE;
-    box-shadow: 0 0 10px #4D6BFE; }
+  /* ── 内容 ───────────────────────────────────────────────────── */
+  .content { position: relative; z-index: 2; height: 100%; display: flex;
+    flex-direction: column; align-items: center; padding-top: 54px; }
 
-  /* 标题 */
+  /* 顶栏：印章 + 技术标注 */
+  .topline { width: 1060px; display: flex; justify-content: space-between; align-items: center; }
+  .stamp { font-size: 13px; font-weight: 500; letter-spacing: 0.12em;
+    color: var(--primary); border: 1px solid var(--border);
+    background: var(--bg-card); padding: 6px 14px; border-radius: 2px; }
+  .stamp b { color: var(--accent); font-weight: 700; }
+  .meta { font-size: 11.5px; letter-spacing: 0.1em; color: var(--ink-3); }
+
   h1 {
-    margin-top: 22px;
-    font-size: 74px; font-weight: 800; letter-spacing: -1px;
-    background: linear-gradient(90deg, #FFFFFF 20%, #B9C7FF 100%);
-    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    margin-top: 26px; font-family: 'JetBrains Mono', monospace;
+    font-size: 72px; font-weight: 700; letter-spacing: 0.02em; line-height: 1;
+    color: var(--ink);
   }
-  .subtitle { margin-top: 14px; font-size: 23px; color: #A8B0C3; font-weight: 400; }
-  .subtitle b { color: #fff; font-weight: 600; }
+  h1 .accent { color: var(--accent); }
+  .sub {
+    margin-top: 14px; display: flex; align-items: center; gap: 14px;
+    font-size: 17px; color: var(--ink-2); letter-spacing: 0.05em;
+  }
+  .sub .cn { color: var(--ink); font-weight: 500; }
+  .sub .ruler-h { width: 46px; height: 1px; background: var(--border); position: relative; }
+  .sub .ruler-h::before { content: ''; position: absolute; top: -2px; left: 0;
+    width: 1px; height: 5px; background: var(--border); }
+  .sub .ruler-h::after { content: ''; position: absolute; top: -2px; right: 0;
+    width: 1px; height: 5px; background: var(--border); }
 
-  /* 滑块卡片 */
+  /* ── 蓝图主卡片 ─────────────────────────────────────────────── */
   .card {
-    margin-top: 44px;
-    width: 820px;
-    background: rgba(255,255,255,0.035);
-    border: 1px solid rgba(255,255,255,0.09);
-    border-radius: 20px;
-    padding: 34px 48px 30px;
-    box-shadow: 0 24px 80px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.05);
-    backdrop-filter: blur(6px);
+    position: relative; margin-top: 38px; width: 960px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    box-shadow: 0 18px 60px rgba(0,0,0,0.35);
   }
-  .card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 26px; }
-  .card-title { font-size: 17px; font-weight: 600; color: #E8EBF5; letter-spacing: 1px; }
-  .card-title span { color: #5E6B8A; font-weight: 400; margin-left: 10px; font-size: 14px; }
-  .card-status { font-size: 14px; color: #2DD4BF; display: flex; align-items: center; gap: 7px; }
-  .card-status .pulse { width: 7px; height: 7px; border-radius: 50%; background: #2DD4BF;
-    box-shadow: 0 0 8px #2DD4BF; }
+  /* 四角准星 */
+  .card .bracket { position: absolute; width: 14px; height: 14px; border-color: var(--primary);
+    border-style: solid; }
+  .card .bracket.tl { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
+  .card .bracket.tr { top: -1px; right: -1px; border-width: 2px 2px 0 0; }
+  .card .bracket.bl { bottom: -1px; left: -1px; border-width: 0 0 2px 2px; }
+  .card .bracket.br { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+  /* 错位衬框（图纸露出底层草图） */
+  .card .draft-frame { position: absolute; top: 6px; left: 6px; right: -6px; bottom: -6px;
+    border: 1px dashed var(--border-dashed); border-radius: 3px; z-index: -1; }
 
-  /* 轨道 */
-  .track-zone { position: relative; height: 46px; }
-  .track { position: absolute; left: 24px; right: 24px; top: 11px; height: 5px; border-radius: 3px;
-    background: #262C3A; }
-  .track-fill { position: absolute; left: 24px; top: 11px; height: 5px; border-radius: 3px;
-    width: calc(100% - 48px);
-    background: linear-gradient(90deg, #4D6BFE, #2DD4BF);
-    box-shadow: 0 0 12px rgba(77,107,254,0.55); }
-  .dot { position: absolute; top: 8px; width: 12px; height: 12px; border-radius: 50%;
-    transform: translateX(-50%);
-    background: #0B0D13; border: 2px solid #4A5266; }
-  .dot.active { width: 17px; height: 17px; top: 5px;
-    background: #4D6BFE; border: 3px solid #0B0D13;
-    box-shadow: 0 0 0 2px #4D6BFE, 0 0 22px rgba(77,107,254,0.9); }
-  .labels { position: relative; height: 26px; margin-top: 8px; }
-  .lbl { position: absolute; transform: translateX(-50%); font-size: 16px; color: #8A93A6;
-    white-space: nowrap; }
-  .lbl.active { color: #FFFFFF; font-weight: 700; text-shadow: 0 0 14px rgba(77,107,254,0.8); }
-  .lbl.first { transform: none; }
-  .lbl.last { transform: translateX(-100%); }
+  .card-inner { padding: 30px 46px 26px; }
 
-  /* 底部 */
-  .foot { margin-top: 34px; font-size: 15px; color: #6E7892; letter-spacing: 0.5px; }
-  .foot code { color: #9FB0FF; background: rgba(77,107,254,0.1); padding: 2px 8px; border-radius: 6px;
-    font-family: 'Consolas', monospace; font-size: 14px; }
+  .card-head { display: flex; align-items: center; justify-content: space-between; }
+  .card-title { font-size: 14px; letter-spacing: 0.14em; color: var(--ink-2); font-weight: 500; }
+  .card-title b { color: var(--ink); }
+  .card-status { font-size: 12px; letter-spacing: 0.12em; color: var(--accent);
+    border: 1px solid rgba(255, 94, 0, 0.45); padding: 4px 12px; border-radius: 2px;
+    background: rgba(255, 94, 0, 0.07); }
+
+  /* 测量分割线（带端点立轴刻度） */
+  .measure { margin: 22px 0 26px; height: 7px; position: relative;
+    border-top: 1px solid var(--border); }
+  .measure::before, .measure::after { content: ''; position: absolute; top: -6px;
+    width: 1px; height: 6px; background: var(--primary); }
+  .measure::before { left: 0; }
+  .measure::after { right: 0; }
+  .measure .mid { position: absolute; top: -4px; left: 50%; width: 1px; height: 4px;
+    background: var(--border); }
+  .measure .lab { position: absolute; top: -20px; right: 0; font-size: 10px;
+    letter-spacing: 0.14em; color: var(--ink-3); }
+
+  /* ── 刻度尺滑块（核心视觉）────────────────────────────────── */
+  .track-zone { position: relative; height: 66px; padding: 0 12px; }
+  .track { position: absolute; left: 28px; right: 28px; top: 30px; height: 1px;
+    background: var(--primary); }
+  /* 每档刻度线 + 档位序号 */
+  .tick { position: absolute; top: 24px; transform: translateX(-50%);
+    width: 1px; height: 13px; background: var(--border); }
+  .tick .num { position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
+    font-size: 9.5px; letter-spacing: 0.08em; color: var(--ink-3); }
+  .tick.active { background: var(--accent); height: 18px; top: 21px; }
+  .tick.active .num { color: var(--accent); font-weight: 600; top: 21px; }
+  /* 档位点 */
+  .dot { position: absolute; top: 25px; transform: translateX(-50%);
+    width: 11px; height: 11px; border-radius: 50%;
+    background: var(--bg); border: 1.5px solid var(--primary); }
+  .dot.active {
+    width: 15px; height: 15px; top: 23px;
+    background: var(--accent); border: 2px solid var(--bg-card);
+    box-shadow: 0 0 0 1.5px var(--accent), 0 0 16px rgba(255, 94, 0, 0.55);
+  }
+  /* 档位标签（等宽印章） */
+  .labels { position: relative; height: 34px; margin-top: 22px; }
+  .lbl { position: absolute; transform: translateX(-50%);
+    font-size: 12.5px; letter-spacing: 0.06em; white-space: nowrap;
+    color: var(--ink-3); padding: 4px 10px; border-radius: 2px; }
+  .lbl.active { color: var(--ink);
+    border: 1px solid var(--border-dashed); background: rgba(0, 240, 255, 0.06); }
+  .lbl.first { transform: none; padding-left: 2px; }
+  .lbl.last { transform: translateX(-100%); padding-right: 2px; }
+
+  /* 卡片脚注 */
+  .card-foot { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between; }
+  .foot-desc { font-size: 13px; color: var(--ink-2); letter-spacing: 0.03em; }
+  .foot-desc b { color: var(--accent); font-weight: 600; }
+  .foot-live { font-size: 11.5px; letter-spacing: 0.1em; color: var(--ink-3); }
+  .foot-live b { color: var(--primary); font-weight: 600; }
+
+  /* ── 底部：特性印章组 + 测量线 ─────────────────────────────── */
+  .pills { margin-top: 34px; display: flex; gap: 10px; }
+  .pill { font-size: 12.5px; letter-spacing: 0.08em; color: var(--ink-2);
+    border: 1px solid var(--border); padding: 6px 14px; border-radius: 2px;
+    background: rgba(0, 240, 255, 0.04); }
+  .pill b { color: var(--primary); font-weight: 600; }
+
+  .bottom-line { margin-top: 30px; width: 1060px; display: flex; align-items: center; gap: 12px; }
+  .bottom-line .line { flex: 1; height: 1px; background: var(--border); position: relative; }
+  .bottom-line .line::before, .bottom-line .line::after { content: ''; position: absolute;
+    top: -2.5px; width: 1px; height: 6px; background: var(--border); }
+  .bottom-line .line::before { left: 0; }
+  .bottom-line .line::after { right: 0; }
+  .bottom-line .coord { font-size: 11px; letter-spacing: 0.12em; color: var(--ink-3); }
+
+  /* ── banner 布局 ────────────────────────────────────────────── */
+  body[data-layout="banner"] .content {
+    flex-direction: row; justify-content: space-between; align-items: center;
+    padding: 0 110px;
+  }
+  body[data-layout="banner"] .left { flex: none; }
+  body[data-layout="banner"] .topline { width: 620px; }
+  body[data-layout="banner"] h1 { font-size: 54px; margin-top: 18px; }
+  body[data-layout="banner"] .sub { font-size: 14px; margin-top: 10px; }
+  body[data-layout="banner"] .pills { margin-top: 24px; }
+  body[data-layout="banner"] .card { margin-top: 0; width: 700px; }
+  body[data-layout="banner"] .card-inner { padding: 22px 34px 18px; }
+  body[data-layout="banner"] .measure { margin: 16px 0 18px; }
+  body[data-layout="banner"] .labels { margin-top: 16px; }
+  body[data-layout="banner"] .card-foot { margin-top: 12px; padding-top: 12px; }
+  body[data-layout="banner"] .bottom-line { display: none; }
 </style>
 </head>
 <body>
-  <div class="grid"></div>
-  <div class="glow-a"></div>
-  <div class="glow-b"></div>
-  <div class="content">
-    <div class="badge"><span class="dot"></span>DSH PLUGIN · 深色主题适配</div>
-    <h1>dsh-autonomy</h1>
-    <div class="subtitle"><b>DSH 自主性切换器</b> · Per-session autonomy control for DeepSeek Harness</div>
+  <div class="canvas">
+    <div class="grid"></div>
+    <div class="sight tl"></div><div class="sight tr"></div>
+    <div class="sight bl"></div><div class="sight br"></div>
+    <div class="ruler left"></div><div class="ruler right"></div>
+  </div>
 
-    <div class="card">
-      <div class="card-head">
-        <div class="card-title">自主性<span>每会话独立 · 下一条消息即时生效</span></div>
-        <div class="card-status"><span class="pulse"></span>正常发挥</div>
+  <div class="content">
+    <div class="left">
+      <div class="topline">
+        <div class="stamp"><b>[</b> DSH-PLUGIN <b>]</b> · AUTONOMY.CTL</div>
+        <div class="meta mono">REV 1.0 / GRID 40 / SCALE 1:1</div>
       </div>
-      <div class="track-zone">
-        <div class="track"></div>
-        <div class="track-fill"></div>
-        <div class="dot" style="left:0%"></div>
-        <div class="dot" style="left:25%"></div>
-        <div class="dot" style="left:50%"></div>
-        <div class="dot" style="left:75%"></div>
-        <div class="dot active" style="left:100%"></div>
+      <h1>DSH-<span class="accent">AUTONOMY</span></h1>
+      <div class="sub">
+        <span class="cn">自主性切换器</span>
+        <span class="ruler-h"></span>
+        <span class="mono">PER-SESSION AUTONOMY CONTROL</span>
       </div>
-      <div class="labels">
-        <div class="lbl first" style="left:0%">严格遵循</div>
-        <div class="lbl" style="left:25%">听取要求</div>
-        <div class="lbl" style="left:50%">正常发挥</div>
-        <div class="lbl" style="left:75%">展现创造</div>
-        <div class="lbl active last" style="left:100%">天马行空</div>
+
+      <div class="pills mono">
+        <div class="pill">[ 提示词注入 ]</div>
+        <div class="pill">[ 零干预默认档 ]</div>
+        <div class="pill">[ <b>/AUTONOMY</b> ]</div>
+        <div class="pill">[ 跨重启记忆 ]</div>
       </div>
     </div>
 
-    <div class="foot">提示词注入 · 零干预默认档 · <code>/autonomy</code> 命令 · 跨重启记忆</div>
+    <div class="card">
+      <span class="bracket tl"></span><span class="bracket tr"></span>
+      <span class="bracket bl"></span><span class="bracket br"></span>
+      <span class="draft-frame"></span>
+      <div class="card-inner">
+        <div class="card-head">
+          <div class="card-title mono"><b>自主性</b> / LEVEL SELECTOR</div>
+          <div class="card-status mono">[ STATUS: ACTIVE ]</div>
+        </div>
+        <div class="measure"><span class="mid"></span><span class="lab mono">AXIS-01</span></div>
+
+        <div class="track-zone">
+          <div class="track"></div>
+          <div class="tick" style="left:0%"><span class="num">01</span></div>
+          <div class="tick" style="left:25%"><span class="num">02</span></div>
+          <div class="tick" style="left:50%"><span class="num">03</span></div>
+          <div class="tick" style="left:75%"><span class="num">04</span></div>
+          <div class="tick active" style="left:100%"><span class="num">05</span></div>
+          <div class="dot" style="left:0%"></div>
+          <div class="dot" style="left:25%"></div>
+          <div class="dot" style="left:50%"></div>
+          <div class="dot" style="left:75%"></div>
+          <div class="dot active" style="left:100%"></div>
+        </div>
+        <div class="labels mono">
+          <div class="lbl first" style="left:0%">严格遵循</div>
+          <div class="lbl" style="left:25%">听取要求</div>
+          <div class="lbl" style="left:50%">正常发挥</div>
+          <div class="lbl" style="left:75%">展现创造</div>
+          <div class="lbl last active" style="left:100%">天马行空</div>
+        </div>
+
+        <div class="card-foot">
+          <div class="foot-desc">当前档位 <b>05 · 天马行空</b> — 先说明再动手，主动增强</div>
+          <div class="foot-live mono">NEXT MSG <b>⇒</b> 即时生效</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bottom-line">
+      <div class="line"></div>
+      <div class="coord mono">X:0640 Y:0320 / 1280×640 / DESIGN-SPEC: BLUEPRINT</div>
+      <div class="line"></div>
+    </div>
   </div>
+
+  <script>
+    // ?t=blueprint | parchment | banner
+    const params = new URLSearchParams(location.search)
+    const t = params.get('t')
+    if (t === 'parchment') document.body.dataset.theme = 'parchment'
+    if (t === 'banner') { document.body.dataset.layout = 'banner'; document.body.dataset.theme = 'blueprint' }
+  </script>
 </body>
 </html>
