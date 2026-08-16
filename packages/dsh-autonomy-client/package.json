@@ -1,0 +1,50 @@
+{
+  "name": "dsh-autonomy-client",
+  "description": "Autonomy slider client plugin: per-session autonomy level control in the composer tool row, left of the model switcher",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "lib/index.mjs",
+  "types": "lib/index.d.mts",
+  "exports": {
+    ".": { "types": "./lib/index.d.mts", "default": "./lib/index.mjs" },
+    "./client": { "types": "./lib/client.d.mts", "default": "./lib/client.js" },
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "client": {
+      "inject": [
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-ui-slots",
+        "@deepseek-ai/dsh-client-ui-settings",
+        "@deepseek-ai/dsh-client-ui-primitives",
+        "@deepseek-ai/dsh-client-ui-conversation",
+        "@deepseek-ai/dsh-api-gateway",
+        "@deepseek-ai/dsh-client-connection",
+        "@deepseek-ai/dsh-api-remotes"
+      ],
+      "platform": "web"
+    }
+  },
+  "files": ["lib"],
+  "license": "MIT",
+  "peerDependencies": {
+    "react": "^18.2.0",
+    "@deepseek-ai/cordis": "^4.0.1",
+    "@deepseek-ai/dsh-client-runtime": "^0.1.0-rc.6",
+    "@deepseek-ai/dsh-client-ui-slots": "^0.1.0-rc.6",
+    "@deepseek-ai/dsh-client-ui-conversation": "^0.1.0-rc.6",
+    "@deepseek-ai/dsh-client-ui-settings": "^0.1.0-rc.6",
+    "@deepseek-ai/dsh-client-ui-primitives": "^0.1.0-rc.6",
+    "@deepseek-ai/dsh-api-remotes": "^0.1.0-rc.6",
+    "@deepseek-ai/dsh-session-projection": "^0.1.0-rc.6"
+  },
+  "devDependencies": {
+    "react": "^18.2.0",
+    "@types/react": "~18.3.1",
+    "@deepseek-ai/dsh-api-remotes": "^0.1.0-rc.6",
+    "@deepseek-ai/dsh-session-projection": "^0.1.0-rc.6",
+    "typescript": "^5.5.0",
+    "tsdown": "latest"
+  },
+  "scripts": { "build": "tsdown && node build-client.mjs" }
+}

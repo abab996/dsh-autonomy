@@ -1,0 +1,7 @@
+{
+  "extends": "../../tsconfig.check.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": ["src"]
+}

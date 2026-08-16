@@ -1,0 +1,8 @@
+# dependencies & build artifacts
+node_modules/
+.npm-cache/
+lib/
+*.tsbuildinfo
+
+# logs
+*.log
