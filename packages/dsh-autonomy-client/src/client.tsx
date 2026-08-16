@@ -22,6 +22,11 @@ type AutonomyLevel = 'strict' | 'heed' | 'normal' | 'creative' | 'wild'
 
 interface AutonomySettings {
   level: AutonomyLevel
+  /**
+   * Per-session overrides (rc.6 fallback channel — empty once the harness
+   * supports ignorable session events and the host writes events instead).
+   */
+  perSession?: Record<string, AutonomyLevel>
 }
 
 const LEVELS: { id: AutonomyLevel; label: string; description: string }[] = [
@@ -46,10 +51,10 @@ function useScope<T>(scope: SettingsScope<T>) {
 /**
  * Composer tool-row autonomy switcher, rendered immediately left of the model
  * seat (conversation.input.right with the highest order). Shows the CURRENT
- * session's effective level (per-session autonomy projection ?? settings
- * default) and switches it through the /autonomy command — per-session,
- * never global. Failures are never silent: the button shows a ⚠ mark with
- * the error as its tooltip.
+ * session's effective level (per-session projection ?? settings per-session
+ * map ?? settings default) and switches it through the /autonomy command —
+ * per-session, never global. Failures are never silent: the button shows a ⚠
+ * mark with the error as its tooltip.
  *
  * The trigger mimics the model selector's toolbar trigger (transparent,
  * label-secondary text, hover fill), and the panel stays open until the user
@@ -67,8 +72,12 @@ function AutonomyControl(props: {
   const [focused, setFocused] = useState(false)
   const [dragging, setDragging] = useState(false)
   const [preview, setPreview] = useState<AutonomyLevel | null>(null)
-  const override = props.useProjection('autonomy')?.level ?? null
   const snap = useScope(props.scope)
+  // Effective override: the session projection (event channel) wins; on
+  // rc.6 hosts no events exist, so fall back to the settings per-session map
+  // the host persists there instead. null / missing = inherit the default.
+  const override =
+    props.useProjection('autonomy')?.level ?? snap.value?.perSession?.[props.sessionId] ?? null
   const effective = override ?? snap.value?.level ?? 'normal'
   const display = preview ?? effective
   const [failure, setFailure] = useState<string | null>(null)

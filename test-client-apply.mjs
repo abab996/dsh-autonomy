@@ -73,7 +73,10 @@ const mockCtx = {
       bound = spec.namespace
       return {
         subscribe: () => () => {},
-        getSnapshot: () => ({ status: 'ready', value: { level: 'normal' } }),
+        // Full namespace value: global default + rc.6 per-session map (the
+        // slider reads both; the projection channel only exists once the
+        // harness writes ignorable events).
+        getSnapshot: () => ({ status: 'ready', value: { level: 'normal', perSession: {} } }),
       }
     },
   },
