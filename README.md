@@ -47,9 +47,39 @@ DSH 的模型默认自主性极强：拿到一句话请求，它会在**单轮�
 ### 环境要求
 
 - DeepSeek Harness **rc.6 及以上**（web 部署）；
-- Windows（脚本基于 PowerShell；macOS/Linux 可手动执行等价步骤）。
+- Windows（脚本基于 PowerShell；macOS/Linux 可手动执行等价步骤）；
+- 方式一需要 [pnpm](https://pnpm.io/installation)（DSH 官方插件通道的前置）。
 
-### 方式一：手动安装
+### 方式一：`dsh plugin` 一行安装（推荐）
+
+本插件声明了 `dsh.bundle.patch`，因此走 DSH 官方的插件通道：`dsh plugin` 把参数转发给
+profile 目录下的 pnpm，装完后自动把带 `dsh.bundle` 声明的包加入 profile 的 bundle 层
+（插件行随包内的 `cordis.patch.yml` 自动生效，无需手动改配置）。
+
+```powershell
+# 从 npm registry 安装（发布后）
+dsh plugin --profile web add dsh-autonomy
+
+# 或从本地源码安装（开发模式，改代码重建即生效）
+#   先构建：npm install && npm run build -w packages/dsh-autonomy -w packages/dsh-autonomy-client
+dsh plugin --profile web add file:D:/path/to/dsh-autonomy/packages/dsh-autonomy
+```
+
+装完还差一步平台级配置——把 `autonomy` 加入 DSH 的设置白名单（`dsh plugin` 只管理
+profile 组合层，不触碰 DSH 安装目录；这一步任何插件都无法自动化）：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File patch-platform.ps1
+```
+
+然后**重启 DSH host**（见下文）。
+
+> `dsh-autonomy-client`（web 滑块）是 `dsh-autonomy` 的依赖，`add` 一条命令即安装两者；
+> 本地路径安装时 pnpm 以 junction 链接源码目录，后续改代码只需重新构建。
+
+### 方式二：deploy.ps1 自动部署
+
+克隆仓库后一条命令完成：构建 → `dsh plugin` 安装 → 清理旧配置 → 白名单注册。
 
 ```powershell
 # 1. 克隆仓库
@@ -59,19 +89,20 @@ cd dsh-autonomy
 # 2. 安装依赖（构建 client bundle 需要）
 npm install
 
-# 3. 部署：构建两包 → 装入 web profile → 启用插件行 → 注册 settings 白名单
-#    在普通 PowerShell 中运行（需要能写入 ~/.dsh 与 DSH 安装目录）
+# 3. 部署：构建两包 → dsh plugin 装入 web profile → 白名单
 powershell -ExecutionPolicy Bypass -File deploy.ps1
 ```
 
-部署脚本幂等，完成三件事：
+脚本幂等，完成三件事：
 
 1. 构建两个包（client 包打成 DSH 的 `window.__ModuleLoader__` 手接格式）；
-2. 以本地 `file:` 依赖（junction 软链）装入 `~/.dsh/profiles/web`——之后改代码只需重新构建，无需卸载重装；
-3. 在 profile 的 `cordis.patch.yml` 追加启用行，并把 `autonomy` 加入 `dsh-host-apiproxy` 的
-   `WEB_SETTINGS_NAMESPACES` 白名单（DSH 升级后需重跑本脚本）。
+2. 通过 `dsh plugin --profile web add` 安装——pnpm 以 `file:` 依赖（junction 软链）
+   装入 `~/.dsh/profiles/web`，`dsh` 自动把带 `dsh.bundle` 声明的包加入 profile 的
+   bundle 层，插件行随包内 `cordis.patch.yml` 生效（并清理旧版脚本遗留的用户层配置行）；
+3. 把 `autonomy` 加入 `dsh-host-apiproxy` 的 `WEB_SETTINGS_NAMESPACES` 白名单
+   （DSH 升级后需重跑本脚本）。
 
-### 方式二：让 AI 帮你安装（推荐）
+### 方式三：让 AI 帮你安装
 
 不想敲命令？直接在 DSH 中新建一个会话，把下面这段提示词整段复制发给 AI 即可，
 AI 会自己完成克隆、装依赖、跑部署脚本并验证结果（你只需要在最后重启一次 DSH）：
@@ -83,10 +114,9 @@ AI 会自己完成克隆、装依赖、跑部署脚本并验证结果（你只�
 1. 克隆仓库到合适的位置（例如当前工作区下的 dsh-autonomy 目录）；
 2. 在仓库目录运行 npm install 安装构建依赖；
 3. 运行 powershell -ExecutionPolicy Bypass -File deploy.ps1 完成部署
-   （该脚本会：构建两个插件包、以软链接装入 ~/.dsh/profiles/web、
-   在 profile 的 cordis.patch.yml 追加启用行、并把 autonomy 加入 DSH 的设置白名单）；
-4. 验证部署结果：cordis.patch.yml 中包含 autonomy 与 autonomy-client 两行、
-   设置白名单包含 "autonomy"、两个插件包的软链接已建立；
+   （该脚本会：构建两个插件包、通过 dsh plugin --profile web add 安装（bundle 层自动生效）、
+   并把 autonomy 加入 DSH 的设置白名单）；
+4. 验证部署结果：profile 的 bundle 层包含 dsh-autonomy、设置白名单包含 "autonomy"；
 5. 汇报结果，并提醒我：需要我手动重启 DSH（会中断当前会话），
    重启并刷新页面后，输入框模型切换器左侧会出现自主性滑块。
 
@@ -221,9 +251,10 @@ node check-autonomy-injection.mjs ~/.dsh/sessions/<workspace>/<session>/session.
 
 ```
 packages/dsh-autonomy          host 插件：settings + 提示词段 + /autonomy 命令 + 客户端投影
+                               └─ cordis.patch.yml：bundle patch 层（dsh plugin 安装时自动启用）
 packages/dsh-autonomy-client   web 插件：conversation.input.right 滑块（模型切换器左侧）
 docs/design.md                 完整设计文档（机制选型、五档提示词、风险与回退）
-deploy.ps1                     构建 + 装包 + patch 行 + 白名单（幂等）
+deploy.ps1                     构建 + dsh plugin 安装 + 旧配置清理 + 白名单（幂等）
 patch-platform.ps1             设置白名单字节级补丁
 test-apply.mjs / test-client-apply.mjs   冒烟测试
 check-autonomy-injection.mjs / dump-injection.mjs   注入诊断脚本

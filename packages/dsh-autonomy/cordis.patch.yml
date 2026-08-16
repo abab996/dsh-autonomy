@@ -1,0 +1,11 @@
+# dsh-autonomy bundle patch: this file is applied as a profile layer when the
+# package is installed with `dsh plugin --profile <name> add dsh-autonomy`
+# (a package whose manifest declares `dsh.bundle.patch` joins the profile's
+# bundle layer stack automatically). It enables the host plugin row and the
+# web client plugin row; `dsh-autonomy-client` ships as a dependency of this
+# package, so a single `add` installs both.
+- insert:
+    - id: autonomy
+      name: dsh-autonomy
+    - id: autonomy-client
+      name: dsh-autonomy-client

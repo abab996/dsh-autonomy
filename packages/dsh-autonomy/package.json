@@ -10,8 +10,16 @@
     "./invariant": { "types": "./lib/invariant.d.mts", "default": "./lib/invariant.mjs" },
     "./package.json": "./package.json"
   },
-  "files": ["lib"],
+  "files": ["lib", "cordis.patch.yml"],
   "license": "MIT",
+  "dependencies": {
+    "dsh-autonomy-client": "file:../dsh-autonomy-client"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
   "peerDependencies": {
     "@deepseek-ai/cordis": "^4.0.1",
     "@deepseek-ai/schemastery": "^3.18.1",
