@@ -15,6 +15,7 @@ const reactStub = {
   createElement: (type, props, ...children) => ({ type, props, children }),
   useState: (init) => [init, () => {}],
   useRef: (init) => ({ current: init }),
+  useEffect: () => {},
   useSyncExternalStore: (_sub, get) => get(),
   Fragment: 'Fragment',
 }

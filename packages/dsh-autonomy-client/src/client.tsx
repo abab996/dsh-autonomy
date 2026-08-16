@@ -1,4 +1,4 @@
-import React, { useRef, useSyncExternalStore, useState } from 'react'
+import React, { useEffect, useRef, useSyncExternalStore, useState } from 'react'
 import { IconChevronDownOutline14 } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { ClientContext, SettingsScope, SessionId, UseProjection } from '@deepseek-ai/dsh-client-runtime/client'
 import type {} from '@deepseek-ai/dsh-client-ui-conversation/client'
@@ -72,6 +72,7 @@ function AutonomyControl(props: {
   const [focused, setFocused] = useState(false)
   const [dragging, setDragging] = useState(false)
   const [preview, setPreview] = useState<AutonomyLevel | null>(null)
+  const [pending, setPending] = useState<AutonomyLevel | null>(null)
   const snap = useScope(props.scope)
   // Effective override: the session projection (event channel) wins; on
   // rc.6 hosts no events exist, so fall back to the settings per-session map
@@ -79,16 +80,29 @@ function AutonomyControl(props: {
   const override =
     props.useProjection('autonomy')?.level ?? snap.value?.perSession?.[props.sessionId] ?? null
   const effective = override ?? snap.value?.level ?? 'normal'
-  const display = preview ?? effective
+  const display = preview ?? pending ?? effective
   const [failure, setFailure] = useState<string | null>(null)
   const trackRef = useRef<HTMLDivElement>(null)
 
   const commit = (level: AutonomyLevel) => {
     setPreview(null)
+    // Optimistic pin: the /autonomy command is async and the settings echo
+    // takes a beat to round-trip — without this the slider snaps back to the
+    // OLD level the moment the pointer lifts, then forward again when the
+    // echo lands. Pin the target so the thumb stays where the user put it.
+    setPending(level)
     void props.setLevel(level).then((outcome) => {
       setFailure(outcome.ok ? null : outcome.message)
+      if (!outcome.ok) setPending(null) // failed: fall back to the real value
     })
   }
+
+  // Once the backend echo catches up with the optimistic pin (projection or
+  // settings per-session map now reports the target), drop the pin so a later
+  // external change can win again.
+  useEffect(() => {
+    if (pending !== null && effective === pending) setPending(null)
+  }, [effective, pending])
 
   const levelFromPointer = (clientX: number): AutonomyLevel => {
     const rect = trackRef.current?.getBoundingClientRect()
@@ -222,7 +236,7 @@ function AutonomyControl(props: {
         type="button"
         style={triggerStyle}
         title={failure ?? '自主性（每会话）'}
-        aria-label={'自主性，当前：' + labelOf(effective)}
+        aria-label={'自主性，当前：' + labelOf(display)}
         aria-haspopup="dialog"
         aria-expanded={open}
         onClick={() => setOpen(!open)}
@@ -231,7 +245,7 @@ function AutonomyControl(props: {
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
       >
-        {(failure === null ? '' : '⚠ ') + labelOf(effective)}
+        {(failure === null ? '' : '⚠ ') + labelOf(display)}
         <span style={chevronStyle} aria-hidden="true">
           <IconChevronDownOutline14 />
         </span>
