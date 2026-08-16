@@ -20,8 +20,14 @@ foreach ($p in 'dsh-autonomy', 'dsh-autonomy-client') {
 #    profile's bundle layer list — a dependency declaring `dsh.bundle.patch`
 #    (this package does) joins the layer stack automatically, so the plugin
 #    rows in packages/dsh-autonomy/cordis.patch.yml become active.
+#    BOTH packages are added as direct dependencies: pnpm normalizes a
+#    directly-added local path to `link:` (a junction to the source tree, so
+#    rebuilds reflect immediately), while a transitive file: dependency
+#    snapshots into the store and would NOT track source edits. The client
+#    package would otherwise be installed only as dsh-autonomy's dependency
+#    and go stale after every rebuild.
 Write-Host "installing via dsh plugin --profile web add"
-& dsh plugin --profile web add (Join-Path $root 'packages\dsh-autonomy')
+& dsh plugin --profile web add (Join-Path $root 'packages\dsh-autonomy') (Join-Path $root 'packages\dsh-autonomy-client')
 if ($LASTEXITCODE -ne 0) { throw "dsh plugin add failed with exit code $LASTEXITCODE" }
 
 # 3. Remove the legacy user-layer rows written by deploy.ps1 v1 (before the

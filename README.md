@@ -60,9 +60,10 @@ profile 目录下的 pnpm，装完后自动把带 `dsh.bundle` 声明的包加�
 # 从 npm registry 安装（发布后）
 dsh plugin --profile web add dsh-autonomy
 
-# 或从本地源码安装（开发模式，改代码重建即生效）
+# 或从本地源码安装（开发模式）
 #   先构建：npm install && npm run build -w packages/dsh-autonomy -w packages/dsh-autonomy-client
-dsh plugin --profile web add file:D:/path/to/dsh-autonomy/packages/dsh-autonomy
+dsh plugin --profile web add file:D:/path/to/dsh-autonomy/packages/dsh-autonomy `
+                                  file:D:/path/to/dsh-autonomy/packages/dsh-autonomy-client
 ```
 
 装完还差一步平台级配置——把 `autonomy` 加入 DSH 的设置白名单（`dsh plugin` 只管理
@@ -74,8 +75,10 @@ powershell -ExecutionPolicy Bypass -File patch-platform.ps1
 
 然后**重启 DSH host**（见下文）。
 
-> `dsh-autonomy-client`（web 滑块）是 `dsh-autonomy` 的依赖，`add` 一条命令即安装两者；
-> 本地路径安装时 pnpm 以 junction 链接源码目录，后续改代码只需重新构建。
+> 本地开发时**两个包都要作为直接依赖 add**：pnpm 只会把「直接 add 的本地路径」转成
+> `link:`（junction，实时同步源码），而作为 `dsh-autonomy` 传递依赖的 `file:` 包会被
+> 快照进 store——只 add 一个包会导致 client 改动不生效。npm 发布版则单包 add 即可
+> （client 作为依赖以快照安装，生产无需实时同步）。
 
 ### 方式二：deploy.ps1 自动部署
 
