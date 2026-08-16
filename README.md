@@ -1,5 +1,7 @@
 # dsh-autonomy — DSH 自主性切换器
 
+![dsh-autonomy banner](assets/dsh-autonomy-banner.png)
+
 一个为 [DeepSeek Harness](https://github.com/deepseek-ai/DeepSeek-Harness) 打造的轻量插件：
 在输入框工具行（模型切换器左侧）提供一个**五档自主性滑块**，按会话调节模型的自主性与创造力，
 从「严格遵循」到「天马行空」。

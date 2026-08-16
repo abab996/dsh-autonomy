@@ -284,11 +284,11 @@
   </div>
 
   <script>
-    // ?t=blueprint | parchment | banner
+    // ?t=blueprint | parchment | banner（banner 默认暖纸）
     const params = new URLSearchParams(location.search)
     const t = params.get('t')
     if (t === 'parchment') document.body.dataset.theme = 'parchment'
-    if (t === 'banner') { document.body.dataset.layout = 'banner'; document.body.dataset.theme = 'blueprint' }
+    if (t === 'banner') { document.body.dataset.layout = 'banner'; document.body.dataset.theme = 'parchment' }
   </script>
 </body>
 </html>
